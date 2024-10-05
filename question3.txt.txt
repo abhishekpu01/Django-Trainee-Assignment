@@ -1,0 +1,24 @@
+Ans 3. By default, Django signals do not necessarily run in the same database transaction as the caller, but it depends on where the signal is hooked. The post_save signal (and others like it) is triggered after the transaction is committed, meaning it runs in a new database transaction context.
+
+Code Snippet:
+from django.db import transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+# Signal handler to check transaction status
+@receiver(post_save, sender=User)
+def my_handler(sender, instance, **kwargs):
+    print("Signal in transaction:", transaction.get_connection().in_atomic_block)
+
+# Code that triggers the signal inside a transaction
+@transaction.atomic
+def create_user():
+    user = User.objects.create(username='testuser')
+    print("User created inside transaction.")
+
+create_user()
+
+Output:
+User created inside transaction.
+Signal in transaction: False

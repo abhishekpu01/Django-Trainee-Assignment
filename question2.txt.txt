@@ -1,0 +1,21 @@
+Ans 2. Yes, Django signals run in the same thread as the caller.
+
+Code Snippet:
+import threading
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+# Signal handler to check thread identity
+@receiver(post_save, sender=User)
+def my_handler(sender, instance, **kwargs):
+    print("Signal handler thread:", threading.current_thread().name)
+
+# Code that triggers the signal
+print("Main thread:", threading.current_thread().name)
+user = User.objects.create(username='testuser')
+
+Output:
+Main thread: MainThread
+Signal handler thread: MainThread
+
